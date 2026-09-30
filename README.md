@@ -30,6 +30,13 @@ neben dem Menüpunkt, also auf allen Ebenen.
   Navigations-Template die Unterlisten in eine zusätzliche Hülle legt (etwa
   `<div class="ul-wrapper">`); Contao selbst misst den Platz in diesem Fall nicht. Ohne
   Häkchen öffnen die Untermenüs immer nach rechts.
+* **Ein- und ausblenden:** Untermenüs erscheinen und verschwinden mit einer kurzen
+  Überblendung statt schlagartig; die Dauer ist einstellbar. Ein ausblendendes Untermenü
+  nimmt keine Mausereignisse mehr an und behält seine Position. Ist im Betriebssystem
+  „Bewegung reduzieren“ eingestellt, entfällt die Überblendung. Browser ohne
+  `@starting-style` zeigen die Untermenüs wie bisher ohne Übergang.
+* **Schatten:** mit oder ohne Schatten unter den Untermenüs; „Contao-Standard“ lässt den
+  Schatten des Themes unverändert.
 * **Symbol für Untermenüs:** Winkel, Pfeil, Dreieck, Plus und Minus, kein Symbol oder
   eine eigene SVG-Datei. Die Symbole übernehmen die Schriftfarbe der Menüpunkte und
   zeigen in der ersten Ebene nach unten, in den weiteren Ebenen zur Seite; öffnet ein
@@ -60,6 +67,8 @@ Voraussetzungen: Contao 5.7 oder 6.0 und ein Navigationsmodul mit dem Template
 | Sicherheitsdreieck | an |
 | Nach kurzem Verlassen wieder einblenden | an, 1000 Millisekunden (100 bis 5000) |
 | Bei Platzmangel nach links öffnen | an |
+| Ein- und ausblenden | aus (Dauer 150 Millisekunden, 50 bis 1000) |
+| Schatten | Contao-Standard (unverändert) |
 | Symbol für Untermenüs | Contao-Standard (unverändert) |
 
 Die Voreinstellungen gelten auch für bereits vorhandene Navigationsmodule. Mit
@@ -85,7 +94,8 @@ Die Erweiterung lässt den Code von Contao unverändert und setzt daneben an:
 * **Template:** `mod_navigation_accessible.html.twig` erweitert das Template des Cores
   (`{% extends %}`) und ergänzt nur den Wrapper des Moduls um die Klasse
   `custom-navigation` und Datenattribute (`data-nav-dreieck`,
-  `data-nav-wiedereinblenden`, `data-nav-richtung`, `data-nav-symbol`). Eigene
+  `data-nav-wiedereinblenden`, `data-nav-richtung`, `data-nav-animation`,
+  `data-nav-schatten`, `data-nav-symbol`). Eigene
   Anpassungen im Theme, die dieses Template ebenfalls per `{% extends %}` erweitern,
   bleiben wirksam.
 * **Skript:** Contao öffnet und schließt Untermenüs über `mouseenter` und `mouseleave` an
@@ -94,8 +104,8 @@ Die Erweiterung lässt den Code von Contao unverändert und setzt daneben an:
   danach nach. Contao führt seinen Zustand (`nav-expanded`) damit selbst weiter.
 * **Stylesheet und Skript** werden nur auf Seiten geladen, auf denen ein Navigationsmodul
   eine der Einstellungen nutzt, als eigene Dateien mit Versionskennung. Es gibt kein
-  Inline-Skript; das `style`-Attribut eines eigenen Symbols bekommt bei aktiver
-  Content Security Policy einen Hash.
+  Inline-Skript; das `style`-Attribut (Dauer der Überblendung, eigenes Symbol) bekommt
+  bei aktiver Content Security Policy einen Hash.
 
 ### Hinweise für Themes
 
@@ -110,6 +120,10 @@ Die Erweiterung lässt den Code von Contao unverändert und setzt daneben an:
 * Die Klasse `nav-ruht` kennzeichnet ein Untermenü, das nach dem Verlassen ausgeblendet
   ist, für Contao aber noch geöffnet – etwa für Hervorhebungen des Menüpunkts:
   `li.nav-expanded:not(.nav-ruht) > a`.
+* Die Einstellungen zu Überblendung und Schatten haben Vorrang vor dem Theme. Bringt ein
+  Theme eigene Übergänge für Untermenüs mit, bleibt „Ein- und ausblenden“ besser aus.
+  Der Schatten lässt sich über `--custom-navigation-schatten` anpassen (Standard wie im
+  Contao-Stylesheet: `1px 2px 15px 8px rgb(0 0 0 / 10%)`).
 * Die Farbe der Symbole kommt aus denselben Variablen wie die Farbe der Menüpunkte im
   Stylesheet von Contao: `--nav-color` und für Hover, Fokus und aktive Punkte
   `--nav-active-color`. Die Größe lässt sich über `--custom-navigation-symbol-groesse`

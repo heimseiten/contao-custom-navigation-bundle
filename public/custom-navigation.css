@@ -29,6 +29,7 @@ body.nav-is-desktop .custom-navigation .navigation-main:has(li.nav-gehalten, li.
     visibility: hidden !important;
     opacity: 0 !important;
     pointer-events: none !important;
+    transition: none !important;
 }
 
 /*
@@ -42,6 +43,54 @@ body.nav-is-desktop .custom-navigation[data-nav-wiedereinblenden] .navigation-ma
     opacity: 0 !important;
     pointer-events: none !important;
     transition: none !important;
+}
+
+/*
+ * Ein- und Ausblenden (data-nav-animation): Contao zeigt Untermenüs über display. Mit
+ * @starting-style und transition-behavior lässt sich das überblenden; Browser ohne diese
+ * Möglichkeiten zeigen sie wie bisher ohne Übergang. Ist im System „Bewegung reduzieren“
+ * eingestellt, entfällt die Überblendung.
+ */
+@media (prefers-reduced-motion: no-preference) {
+    body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main ul ul {
+        transition-property: opacity, visibility, display;
+        transition-duration: var(--custom-navigation-dauer, 150ms);
+        transition-timing-function: ease;
+        transition-behavior: allow-discrete;
+    }
+
+    /* Beim Schließen durchsichtig werden und keine Mausereignisse mehr annehmen. */
+    body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main li:not(.nav-expanded) > ul,
+    body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main li:not(.nav-expanded) > .ul-wrapper > ul {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* Untermenüs innerhalb eines schließenden Menüpunkts verschwinden sofort: Contao
+       positioniert seitliche Untermenüs nur, solange der Menüpunkt darüber geöffnet ist –
+       beim Ausblenden sprängen sie sonst an eine andere Stelle. */
+    body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main li:not(.nav-expanded) li > ul,
+    body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main li:not(.nav-expanded) li > .ul-wrapper > ul {
+        transition: none;
+    }
+
+    /* Beim Öffnen aus der Durchsichtigkeit heraus – mit derselben Gewichtung wie die
+       Sichtbarkeitsregel oben, deshalb auch hier !important. */
+    @starting-style {
+        body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main li.nav-expanded:not(.nav-ruht) > ul,
+        body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main li.nav-expanded:not(.nav-ruht) > .ul-wrapper > ul {
+            opacity: 0 !important;
+        }
+    }
+}
+
+/* Schatten (data-nav-schatten): im Navigationsmodul ausdrücklich gewählt, daher mit Vorrang vor dem Theme. */
+body.nav-is-desktop .custom-navigation[data-nav-schatten="mit"] .navigation-main ul ul {
+    box-shadow: var(--custom-navigation-schatten, 1px 2px 15px 8px rgb(0 0 0 / 10%)) !important;
+}
+
+body.nav-is-desktop .custom-navigation[data-nav-schatten="ohne"] .navigation-main :is(ul ul, li > .ul-wrapper) {
+    box-shadow: none !important;
 }
 
 /*

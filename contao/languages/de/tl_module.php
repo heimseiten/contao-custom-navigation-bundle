@@ -30,6 +30,23 @@ $GLOBALS['TL_LANG']['tl_module']['customNavLinksBeiPlatzmangel'] = [
     'Bei Platzmangel nach links öffnen',
     'Seitliche Untermenüs öffnen links, wenn rechts im Fenster der Platz fehlt; ohne Häkchen immer rechts.',
 ];
+$GLOBALS['TL_LANG']['tl_module']['customNavAnimation'] = [
+    'Ein- und ausblenden',
+    'Untermenüs erscheinen und verschwinden mit einer kurzen Überblendung statt schlagartig.',
+];
+$GLOBALS['TL_LANG']['tl_module']['customNavAnimationDauer'] = [
+    'Dauer in Millisekunden',
+    '50 bis 1000 Millisekunden, Standard 150.',
+];
+$GLOBALS['TL_LANG']['tl_module']['customNavSchatten'] = [
+    'Schatten',
+    '„Contao-Standard“ lässt den Schatten des Themes unverändert.',
+];
+$GLOBALS['TL_LANG']['tl_module']['customNavSchattenStandard'] = 'Contao-Standard';
+$GLOBALS['TL_LANG']['tl_module']['customNavSchattenOptionen'] = [
+    'mit' => 'Mit Schatten',
+    'ohne' => 'Ohne Schatten',
+];
 $GLOBALS['TL_LANG']['tl_module']['customNavSymbol'] = [
     'Symbol für Untermenüs',
     'Kennzeichnet Menüpunkte mit Untermenü und übernimmt deren Schriftfarbe.',

@@ -21,7 +21,7 @@ use Contao\CoreBundle\DataContainer\PaletteManipulator;
 PaletteManipulator::create()
     ->addLegend('custom_navigation_legend', 'template_legend', PaletteManipulator::POSITION_AFTER)
     ->addField(
-        ['customNavDreieck', 'customNavWiedereinblenden', 'customNavLinksBeiPlatzmangel', 'customNavSymbol'],
+        ['customNavDreieck', 'customNavWiedereinblenden', 'customNavLinksBeiPlatzmangel', 'customNavAnimation', 'customNavSchatten', 'customNavSymbol'],
         'custom_navigation_legend',
         PaletteManipulator::POSITION_APPEND,
     )
@@ -29,21 +29,23 @@ PaletteManipulator::create()
 ;
 
 $GLOBALS['TL_DCA']['tl_module']['palettes']['__selector__'][] = 'customNavWiedereinblenden';
+$GLOBALS['TL_DCA']['tl_module']['palettes']['__selector__'][] = 'customNavAnimation';
 $GLOBALS['TL_DCA']['tl_module']['palettes']['__selector__'][] = 'customNavSymbol';
 $GLOBALS['TL_DCA']['tl_module']['subpalettes']['customNavWiedereinblenden'] = 'customNavWiedereinblendenDauer';
+$GLOBALS['TL_DCA']['tl_module']['subpalettes']['customNavAnimation'] = 'customNavAnimationDauer';
 $GLOBALS['TL_DCA']['tl_module']['subpalettes']['customNavSymbol_eigenes'] = 'customNavSymbolDatei';
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['customNavDreieck'] = [
     'exclude' => true,
     'inputType' => 'checkbox',
-    'eval' => ['tl_class' => 'w50 clr'],
+    'eval' => ['tl_class' => 'clr'],
     'sql' => ['type' => 'boolean', 'default' => true],
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['customNavWiedereinblenden'] = [
     'exclude' => true,
     'inputType' => 'checkbox',
-    'eval' => ['submitOnChange' => true, 'tl_class' => 'w50 clr'],
+    'eval' => ['submitOnChange' => true, 'tl_class' => 'clr'],
     'sql' => ['type' => 'boolean', 'default' => true],
 ];
 
@@ -57,8 +59,35 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['customNavWiedereinblendenDauer'] = [
 $GLOBALS['TL_DCA']['tl_module']['fields']['customNavLinksBeiPlatzmangel'] = [
     'exclude' => true,
     'inputType' => 'checkbox',
-    'eval' => ['tl_class' => 'w50 clr'],
+    'eval' => ['tl_class' => 'clr'],
     'sql' => ['type' => 'boolean', 'default' => true],
+];
+
+$GLOBALS['TL_DCA']['tl_module']['fields']['customNavAnimation'] = [
+    'exclude' => true,
+    'inputType' => 'checkbox',
+    'eval' => ['submitOnChange' => true, 'tl_class' => 'clr'],
+    'sql' => ['type' => 'boolean', 'default' => false],
+];
+
+$GLOBALS['TL_DCA']['tl_module']['fields']['customNavAnimationDauer'] = [
+    'exclude' => true,
+    'inputType' => 'text',
+    'eval' => ['mandatory' => true, 'rgxp' => 'natural', 'minval' => 50, 'maxval' => 1000, 'maxlength' => 4, 'tl_class' => 'w50'],
+    'sql' => ['type' => 'integer', 'unsigned' => true, 'default' => 150],
+];
+
+$GLOBALS['TL_DCA']['tl_module']['fields']['customNavSchatten'] = [
+    'exclude' => true,
+    'inputType' => 'select',
+    'options' => ['mit', 'ohne'],
+    'reference' => &$GLOBALS['TL_LANG']['tl_module']['customNavSchattenOptionen'],
+    'eval' => [
+        'includeBlankOption' => true,
+        'blankOptionLabel' => &$GLOBALS['TL_LANG']['tl_module']['customNavSchattenStandard'],
+        'tl_class' => 'w50 clr',
+    ],
+    'sql' => ['type' => 'string', 'length' => 8, 'default' => ''],
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['customNavSymbol'] = [

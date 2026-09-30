@@ -1,6 +1,6 @@
 {
     "name": "heimseiten/contao-custom-navigation-bundle",
-    "description": "Sicherheitsdreieck für das barrierefreie Navigationsmenü von Contao: Fährt die Maus schräg auf ein Untermenü zu und streift dabei andere Menüpunkte, bleibt das Untermenü geöffnet. Außerdem im Navigationsmodul einstellbar: Wiedereinblenden nach kurzem Verlassen, Öffnungsrichtung seitlicher Untermenüs bei Platzmangel und das Symbol für Menüpunkte mit Untermenü.",
+    "description": "Sicherheitsdreieck für das barrierefreie Navigationsmenü von Contao: Fährt die Maus schräg auf ein Untermenü zu und streift dabei andere Menüpunkte, bleibt das Untermenü geöffnet. Außerdem im Navigationsmodul einstellbar: Wiedereinblenden nach kurzem Verlassen, Öffnungsrichtung seitlicher Untermenüs bei Platzmangel, Ein- und Ausblenden, Schatten und das Symbol für Menüpunkte mit Untermenü.",
     "keywords": [
         "navigation",
         "menü",

@@ -30,6 +30,8 @@ final class CustomNavigationRuntime implements RuntimeExtensionInterface
 
     private const SYMBOLS = ['chevron', 'pfeil', 'dreieck', 'plus', 'keins', 'eigenes'];
 
+    private const SHADOWS = ['mit', 'ohne'];
+
     public function __construct(
         private readonly ContaoFramework $framework,
         private readonly Packages $packages,
@@ -51,7 +53,7 @@ final class CustomNavigationRuntime implements RuntimeExtensionInterface
     {
         $attributes = new HtmlAttributes();
         $behaviour = false;
-        $symbol = false;
+        $look = false;
         $inlineStyle = false;
 
         if (!empty($context['customNavDreieck'])) {
@@ -60,7 +62,7 @@ final class CustomNavigationRuntime implements RuntimeExtensionInterface
         }
 
         if (!empty($context['customNavWiedereinblenden'])) {
-            $attributes->set('data-nav-wiedereinblenden', $this->getDuration($context['customNavWiedereinblendenDauer'] ?? null));
+            $attributes->set('data-nav-wiedereinblenden', $this->getDuration($context['customNavWiedereinblendenDauer'] ?? null, 100, 5000, 1000));
             $behaviour = true;
         }
 
@@ -71,21 +73,39 @@ final class CustomNavigationRuntime implements RuntimeExtensionInterface
             $behaviour = true;
         }
 
+        // Die Dauer braucht das Stylesheet (Stilvariable), das Skript liest sie aus dem
+        // Datenattribut: Es hält die Position eines Untermenüs fest, solange es ausblendet.
+        if (!empty($context['customNavAnimation'])) {
+            $duration = $this->getDuration($context['customNavAnimationDauer'] ?? null, 50, 1000, 150);
+            $attributes->set('data-nav-animation', $duration);
+            $attributes->addStyle(['--custom-navigation-dauer' => $duration.'ms']);
+            $behaviour = true;
+            $look = true;
+            $inlineStyle = true;
+        }
+
+        $shadow = (string) ($context['customNavSchatten'] ?? '');
+
+        if (\in_array($shadow, self::SHADOWS, true)) {
+            $attributes->set('data-nav-schatten', $shadow);
+            $look = true;
+        }
+
         $name = (string) ($context['customNavSymbol'] ?? '');
 
         if ('eigenes' === $name) {
             if (null !== ($url = $this->getFileUrl($context['customNavSymbolDatei'] ?? null))) {
                 $attributes->set('data-nav-symbol', $name);
                 $attributes->addStyle(['--custom-navigation-symbol' => 'url("'.addcslashes($url, '"\\').'")']);
-                $symbol = true;
+                $look = true;
                 $inlineStyle = true;
             }
         } elseif (\in_array($name, self::SYMBOLS, true)) {
             $attributes->set('data-nav-symbol', $name);
-            $symbol = true;
+            $look = true;
         }
 
-        if (!$behaviour && !$symbol) {
+        if (!$behaviour && !$look) {
             return ['attributes' => null, 'script' => null, 'stylesheet' => null, 'inline_style' => false];
         }
 
@@ -99,13 +119,13 @@ final class CustomNavigationRuntime implements RuntimeExtensionInterface
         ];
     }
 
-    private function getDuration(mixed $value): int
+    private function getDuration(mixed $value, int $min, int $max, int $default): int
     {
         if (!is_numeric($value)) {
-            return 1000;
+            return $default;
         }
 
-        return max(100, min(5000, (int) $value));
+        return max($min, min($max, (int) $value));
     }
 
     private function getFileUrl(mixed $uuid): string|null

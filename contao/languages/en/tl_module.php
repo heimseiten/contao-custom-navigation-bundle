@@ -30,6 +30,23 @@ $GLOBALS['TL_LANG']['tl_module']['customNavLinksBeiPlatzmangel'] = [
     'Open to the left if there is not enough space',
     'Side submenus open to the left if there is not enough space on the right; otherwise always to the right.',
 ];
+$GLOBALS['TL_LANG']['tl_module']['customNavAnimation'] = [
+    'Fade in and out',
+    'Submenus appear and disappear with a short fade instead of abruptly.',
+];
+$GLOBALS['TL_LANG']['tl_module']['customNavAnimationDauer'] = [
+    'Duration in milliseconds',
+    '50 to 1000 milliseconds, default 150.',
+];
+$GLOBALS['TL_LANG']['tl_module']['customNavSchatten'] = [
+    'Shadow',
+    '"Contao default" leaves the shadow of the theme unchanged.',
+];
+$GLOBALS['TL_LANG']['tl_module']['customNavSchattenStandard'] = 'Contao default';
+$GLOBALS['TL_LANG']['tl_module']['customNavSchattenOptionen'] = [
+    'mit' => 'With shadow',
+    'ohne' => 'Without shadow',
+];
 $GLOBALS['TL_LANG']['tl_module']['customNavSymbol'] = [
     'Submenu icon',
     'Marks menu items with a submenu and adopts their text color.',

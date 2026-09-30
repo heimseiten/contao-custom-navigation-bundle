@@ -18,6 +18,7 @@
  *   data-nav-dreieck               Sicherheitsdreieck
  *   data-nav-wiedereinblenden="ms" Wiedereinblenden nach kurzem Verlassen
  *   data-nav-richtung="auto|rechts" Seitliche Untermenüs bei Platzmangel links bzw. immer rechts
+ *   data-nav-animation="ms"        Untermenüs ein- und ausblenden (Überblendung im Stylesheet)
  */
 
 /** Klasse, solange ein Untermenü für die heranfahrende Maus offen gehalten wird. */
@@ -110,6 +111,8 @@ class CustomNavigation {
     #triangle;
     #returnTime;
     #direction;
+    #fadeTime;
+    #frozen = new Map();
     #pending = null;
     #point = null;
     #bypass = false;
@@ -121,6 +124,7 @@ class CustomNavigation {
         this.#triangle = wrapper.hasAttribute('data-nav-dreieck');
         this.#returnTime = parseInt(wrapper.dataset.navWiedereinblenden, 10) || 0;
         this.#direction = wrapper.dataset.navRichtung || '';
+        this.#fadeTime = parseInt(wrapper.dataset.navAnimation, 10) || 0;
 
         // mouseenter und mouseleave steigen nicht auf, durchlaufen aber die Capture-Phase:
         // Hier kommen sie vor den Listenern von Contao an den Menüpunkten an.
@@ -131,6 +135,7 @@ class CustomNavigation {
             subtree: true,
             attributes: true,
             attributeFilter: ['class'],
+            attributeOldValue: true,
         });
     }
 
@@ -453,11 +458,15 @@ class CustomNavigation {
     }
 
     #onMutation(records) {
-        for (const { target } of records) {
+        for (const { target, oldValue } of records) {
             if (isSubmenuItem(target)) {
                 this.#onSubmenuChange(target);
-            } else if ('rechts' === this.#direction && target instanceof HTMLUListElement) {
-                this.#keepRight(target);
+            } else if (target instanceof HTMLUListElement) {
+                if ('rechts' === this.#direction) {
+                    this.#keepRight(target);
+                } else if (this.#fadeTime) {
+                    this.#keepPosition(target, oldValue);
+                }
             }
         }
     }
@@ -469,8 +478,11 @@ class CustomNavigation {
             return;
         }
 
+        const submenu = getSubmenu(li);
+
         if (open) {
             this.#open.add(li);
+            this.#thaw(submenu);
             this.#placeSubmenu(li);
 
             return;
@@ -478,11 +490,16 @@ class CustomNavigation {
 
         this.#open.delete(li);
 
-        const submenu = getSubmenu(li);
-
-        // Contao entfernt die Markierung nur an Listen direkt im Menüpunkt.
+        // Contao entfernt die Markierung nur an Listen direkt im Menüpunkt; steckt die Liste
+        // in einer Hülle, übernimmt das Skript – nach dem Ausblenden, wenn eingestellt.
         if (submenu && submenu.parentElement !== li) {
-            submenu.classList.remove('bounds-right', 'bounds-left');
+            const marks = ['bounds-right', 'bounds-left'].filter((mark) => submenu.classList.contains(mark));
+
+            if (marks.length && this.#isFading(submenu)) {
+                this.#freeze(submenu, marks);
+            } else {
+                submenu.classList.remove('bounds-right', 'bounds-left');
+            }
         }
 
         // Contao hat ein wartendes Untermenü selbst geschlossen (Escape, Fokus, Klick):
@@ -533,6 +550,54 @@ class CustomNavigation {
         }
     }
 
+    /**
+     * Ein- und Ausblenden: Contao entfernt die Markierung für die Öffnungsrichtung
+     * (bounds-right/-left) sofort beim Schließen. Während das Untermenü noch ausblendet,
+     * spränge es dadurch zur anderen Seite – die Markierung bleibt deshalb bis zum Ende
+     * der Überblendung stehen.
+     */
+    #keepPosition(ul, oldValue) {
+        const marks = ['bounds-right', 'bounds-left'].filter((mark) => (oldValue || '').split(/\s+/).includes(mark) && !ul.classList.contains(mark));
+
+        if (!marks.length) {
+            return;
+        }
+
+        const li = ul.parentElement.closest('li');
+
+        if (li && !li.classList.contains('nav-expanded') && getSubmenu(li) === ul && this.#isFading(ul)) {
+            this.#freeze(ul, marks);
+        }
+    }
+
+    /** Blendet die Liste gerade aus? Ohne Überblendung ist sie sofort nicht mehr sichtbar. */
+    #isFading(ul) {
+        return this.#fadeTime > 0 && isDesktop() && 'none' !== getComputedStyle(ul).display;
+    }
+
+    #freeze(ul, marks) {
+        this.#thaw(ul);
+        ul.classList.add(...marks);
+
+        this.#frozen.set(ul, setTimeout(() => {
+            this.#frozen.delete(ul);
+
+            const li = ul.parentElement.closest('li');
+
+            if (!li?.classList.contains('nav-expanded')) {
+                ul.classList.remove(...marks);
+            }
+        }, this.#fadeTime + 50));
+    }
+
+    /** Öffnet das Untermenü wieder, bevor es ganz ausgeblendet ist: Markierung bleibt, wie sie ist. */
+    #thaw(ul) {
+        if (ul && this.#frozen.has(ul)) {
+            clearTimeout(this.#frozen.get(ul));
+            this.#frozen.delete(ul);
+        }
+    }
+
     /** „Immer rechts“: Markierungen, die Contao an seitlichen Untermenüs setzt, entfernen. */
     #keepRight(ul) {
         if (!ul.classList.contains('bounds-right') && !ul.classList.contains('bounds-left')) {
@@ -571,7 +636,7 @@ document.addEventListener('mousemove', (event) => {
 for (const wrapper of document.querySelectorAll('.custom-navigation')) {
     const navigation = wrapper.querySelector('.navigation-main');
 
-    if (navigation && (wrapper.hasAttribute('data-nav-dreieck') || wrapper.hasAttribute('data-nav-wiedereinblenden') || wrapper.hasAttribute('data-nav-richtung'))) {
+    if (navigation && ['data-nav-dreieck', 'data-nav-wiedereinblenden', 'data-nav-richtung', 'data-nav-animation'].some((name) => wrapper.hasAttribute(name))) {
         instances.push(new CustomNavigation(wrapper, navigation));
     }
 }
