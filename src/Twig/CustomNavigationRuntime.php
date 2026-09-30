@@ -28,7 +28,7 @@ final class CustomNavigationRuntime implements RuntimeExtensionInterface
      */
     private const PACKAGE = 'heimseiten_contao_custom_navigation';
 
-    private const SYMBOLS = ['chevron', 'pfeil', 'dreieck', 'plus', 'keins', 'eigenes'];
+    private const SYMBOLS = ['chevron', 'pfeil', 'dreieck', 'plus', 'keins'];
 
     private const SHADOWS = ['mit', 'ohne'];
 
@@ -91,15 +91,15 @@ final class CustomNavigationRuntime implements RuntimeExtensionInterface
             $look = true;
         }
 
+        // Ein eigenes Symbol ersetzt das gewählte.
+        $url = empty($context['customNavSymbolEigenes']) ? null : $this->getFileUrl($context['customNavSymbolDatei'] ?? null);
         $name = (string) ($context['customNavSymbol'] ?? '');
 
-        if ('eigenes' === $name) {
-            if (null !== ($url = $this->getFileUrl($context['customNavSymbolDatei'] ?? null))) {
-                $attributes->set('data-nav-symbol', $name);
-                $attributes->addStyle(['--custom-navigation-symbol' => 'url("'.addcslashes($url, '"\\').'")']);
-                $look = true;
-                $inlineStyle = true;
-            }
+        if (null !== $url) {
+            $attributes->set('data-nav-symbol', 'eigenes');
+            $attributes->addStyle(['--custom-navigation-symbol' => 'url("'.addcslashes($url, '"\\').'")']);
+            $look = true;
+            $inlineStyle = true;
         } elseif (\in_array($name, self::SYMBOLS, true)) {
             $attributes->set('data-nav-symbol', $name);
             $look = true;

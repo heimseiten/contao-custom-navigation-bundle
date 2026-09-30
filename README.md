@@ -38,12 +38,13 @@ neben dem Menüpunkt, also auf allen Ebenen.
 * **Schatten:** mit oder ohne Schatten unter den Untermenüs; ohne Auswahl („-“) bleibt
   der Schatten des Themes unverändert.
 * **Symbol für Untermenüs:** Winkel (Voreinstellung, die Form des Contao-Symbols), Pfeil,
-  Dreieck, Plus und Minus, kein Symbol oder eine eigene SVG-Datei. Die Symbole zeigen in
-  der ersten Ebene nach unten, in den weiteren Ebenen zur Seite und drehen sich beim
-  Öffnen mit; das Plus zieht beim Öffnen seinen senkrechten Strich ein. Öffnet ein
+  Dreieck, Plus und Minus oder kein Symbol; wahlweise ersetzt eine eigene SVG-Datei das
+  gewählte Symbol. Die Symbole haben die Farbe der Menüpunkte, sitzen mittig zur Zeile,
+  zeigen in der ersten Ebene nach unten, in den weiteren Ebenen zur Seite und drehen sich
+  beim Öffnen mit; das Plus zieht beim Öffnen seinen senkrechten Strich ein. Öffnet ein
   seitliches Untermenü nach links, zeigt auch das Symbol nach links. „Kein Symbol“
   blendet es nur aus: Mit der Tastatur bleibt der Schalter erreichbar und erscheint mit
-  dem Fokus. Ohne Auswahl („-“) bleibt das Symbol des Themes unverändert.
+  dem Fokus.
 
 ![Die Symbole Pfeil, Winkel, Dreieck sowie Plus und Minus](https://raw.githubusercontent.com/heimseiten/contao-custom-navigation-bundle/main/doc/symbole.png)
 
@@ -61,16 +62,20 @@ Voraussetzungen: Contao 5.7 oder 6.0 und ein Navigationsmodul mit dem Template
 
 ## Einstellungen
 
-*Layout ▸ Themes ▸ Frontend-Module ▸ Navigationsmenü*, Legende **Untermenüs (Desktop)**:
+*Layout ▸ Themes ▸ Frontend-Module ▸ Navigationsmenü*:
 
-| Einstellung | Voreinstellung |
-| --- | --- |
-| Sicherheitsdreieck | an |
-| Nach kurzem Verlassen wieder einblenden | an, 1000 Millisekunden (100 bis 5000) |
-| Bei Platzmangel nach links öffnen | an |
-| Ein- und ausblenden | aus (Dauer 150 Millisekunden, 50 bis 1000) |
-| Schatten | „-“ (unverändert) |
-| Symbol für Untermenüs | Winkel |
+| Legende | Einstellung | Voreinstellung |
+| --- | --- | --- |
+| Bedienung der Untermenüs (Desktop) | Sicherheitsdreieck | an |
+| | Bei Platzmangel nach links öffnen | an |
+| | Nach kurzem Verlassen wieder einblenden | an, 1000 Millisekunden (100 bis 5000) |
+| Darstellung der Untermenüs (Desktop) | Symbol für Untermenüs | Winkel |
+| | Schatten | „-“ (unverändert) |
+| | Eigenes Symbol (SVG) | aus |
+| | Ein- und ausblenden | aus (Dauer 150 Millisekunden, 50 bis 1000) |
+
+Kein Feld lädt das Formular beim Ändern neu: Die Zusatzfelder der Checkboxen blendet
+Contao per Ajax ein.
 
 Die Voreinstellungen gelten auch für bereits vorhandene Navigationsmodule. Mit
 ausgeschaltetem Sicherheitsdreieck und Wiedereinblenden öffnen und schließen sich die
@@ -132,10 +137,14 @@ Die Erweiterung lässt den Code von Contao unverändert und setzt daneben an:
   Contao-Stylesheet: `1px 2px 15px 8px rgb(0 0 0 / 10%)`).
 * Die Farbe der Symbole kommt aus denselben Variablen wie die Farbe der Menüpunkte im
   Stylesheet von Contao: `--nav-color` und für Hover, Fokus und aktive Punkte
-  `--nav-active-color`. Färbt ein Theme die Menüpunkte direkt statt über diese
-  Variablen, legt es die Farbe des Symbols über `color` an `.btn-toggle-submenu` fest.
-  Im Kontrastmodus von Windows erscheinen die Symbole in der Systemfarbe für
-  Schaltflächen. Die Größe lässt sich über `--custom-navigation-symbol-groesse` anpassen
+  `--nav-active-color`. Die Erweiterung setzt sie direkt am Symbol, eine Schriftfarbe
+  an `.btn-toggle-submenu` spielt dafür keine Rolle. Färbt ein Theme die Menüpunkte nicht
+  über diese Variablen, setzt es sie passend, etwa am Navigationsmodul. Im Kontrastmodus
+  von Windows erscheinen die Symbole in der Systemfarbe für Schaltflächen.
+* In der ersten Ebene reicht die Schaltfläche über die volle Höhe des Menüpunkts; das
+  Symbol sitzt damit mittig zur Zeile, solange das Theme dem Menüpunkt oben und unten
+  gleich viel Innenabstand gibt (wie das Contao-Stylesheet).
+* Die Größe der Symbole lässt sich über `--custom-navigation-symbol-groesse` anpassen
   (Standard `20px`), das Symbol selbst über `--custom-navigation-symbol` (`url(…)`).
 
 ## Lizenz

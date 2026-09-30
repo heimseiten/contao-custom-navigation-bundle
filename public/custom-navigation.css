@@ -107,14 +107,25 @@ body.nav-is-desktop .custom-navigation[data-nav-schatten="ohne"] .navigation-mai
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 6v12'/%3E%3C/svg%3E");
 }
 
-/* Das Symbol folgt der Farbe des Menüpunkts – mit denselben Farbvariablen wie Contao. */
+/*
+ * Farbe wie die Menüpunkte im Contao-Stylesheet (--nav-color, bei Hover, Fokus und aktiven
+ * Punkten --nav-active-color). Sie wird direkt am Symbol gesetzt und hängt damit nicht von
+ * der Schriftfarbe der Schaltfläche ab, die manche Themes festlegen.
+ */
 body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main li > .btn-toggle-submenu {
-    color: var(--nav-color, currentColor);
+    --custom-navigation-farbe: var(--nav-color, currentColor);
 }
 
 body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main li > :is(a:hover, a:focus-visible, a.trail, strong) + .btn-toggle-submenu,
 body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main li > .btn-toggle-submenu:is(:hover, :focus-visible) {
-    color: var(--nav-active-color, currentColor);
+    --custom-navigation-farbe: var(--nav-active-color, currentColor);
+}
+
+/* Erste Ebene: Die Schaltfläche reicht über die volle Höhe des Menüpunkts, das Symbol sitzt damit mittig zur Zeile. */
+body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main .level_1 > li > .btn-toggle-submenu {
+    top: 0;
+    bottom: 0;
+    height: auto;
 }
 
 /*
@@ -132,7 +143,7 @@ body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main li > .b
     width: 100%;
     height: 100%;
     margin: 0;
-    background: currentColor;
+    background: var(--custom-navigation-farbe, currentColor);
     filter: none;
     -webkit-mask-image: var(--custom-navigation-symbol);
     mask-image: var(--custom-navigation-symbol);
@@ -178,7 +189,7 @@ body.nav-is-desktop .custom-navigation[data-nav-symbol="keins"] .navigation-main
  */
 @media (prefers-reduced-motion: no-preference) {
     body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main li > .btn-toggle-submenu::after {
-        transition-property: transform, -webkit-mask-size, mask-size;
+        transition-property: transform, background-color, -webkit-mask-size, mask-size;
         transition-duration: var(--custom-navigation-dauer, 0.3s);
         transition-timing-function: ease-in-out;
     }

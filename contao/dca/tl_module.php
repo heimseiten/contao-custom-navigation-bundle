@@ -17,12 +17,21 @@ use Contao\CoreBundle\DataContainer\PaletteManipulator;
 /*
  * Einstellungen für die Untermenüs des Navigationsmoduls. Sie wirken mit dem Template
  * mod_navigation_accessible (oder einer Variante davon) und nur in der Desktop-Ansicht.
+ *
+ * Kein Feld lädt das Formular beim Ändern neu: Unterpaletten hängen nur an Checkboxen,
+ * deren Zusatzfelder Contao per Ajax einblendet.
  */
 PaletteManipulator::create()
-    ->addLegend('custom_navigation_legend', 'template_legend', PaletteManipulator::POSITION_AFTER)
+    ->addLegend('custom_navigation_darstellung_legend', 'template_legend', PaletteManipulator::POSITION_AFTER)
+    ->addLegend('custom_navigation_bedienung_legend', 'template_legend', PaletteManipulator::POSITION_AFTER)
     ->addField(
-        ['customNavDreieck', 'customNavWiedereinblenden', 'customNavLinksBeiPlatzmangel', 'customNavAnimation', 'customNavSchatten', 'customNavSymbol'],
-        'custom_navigation_legend',
+        ['customNavDreieck', 'customNavLinksBeiPlatzmangel', 'customNavWiedereinblenden'],
+        'custom_navigation_bedienung_legend',
+        PaletteManipulator::POSITION_APPEND,
+    )
+    ->addField(
+        ['customNavSymbol', 'customNavSchatten', 'customNavSymbolEigenes', 'customNavAnimation'],
+        'custom_navigation_darstellung_legend',
         PaletteManipulator::POSITION_APPEND,
     )
     ->applyToPalette('navigation', 'tl_module')
@@ -30,22 +39,31 @@ PaletteManipulator::create()
 
 $GLOBALS['TL_DCA']['tl_module']['palettes']['__selector__'][] = 'customNavWiedereinblenden';
 $GLOBALS['TL_DCA']['tl_module']['palettes']['__selector__'][] = 'customNavAnimation';
-$GLOBALS['TL_DCA']['tl_module']['palettes']['__selector__'][] = 'customNavSymbol';
+$GLOBALS['TL_DCA']['tl_module']['palettes']['__selector__'][] = 'customNavSymbolEigenes';
 $GLOBALS['TL_DCA']['tl_module']['subpalettes']['customNavWiedereinblenden'] = 'customNavWiedereinblendenDauer';
 $GLOBALS['TL_DCA']['tl_module']['subpalettes']['customNavAnimation'] = 'customNavAnimationDauer';
-$GLOBALS['TL_DCA']['tl_module']['subpalettes']['customNavSymbol_eigenes'] = 'customNavSymbolDatei';
+$GLOBALS['TL_DCA']['tl_module']['subpalettes']['customNavSymbolEigenes'] = 'customNavSymbolDatei';
+
+// Bedienung
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['customNavDreieck'] = [
     'exclude' => true,
     'inputType' => 'checkbox',
-    'eval' => ['tl_class' => 'clr'],
+    'eval' => ['tl_class' => 'w50'],
+    'sql' => ['type' => 'boolean', 'default' => true],
+];
+
+$GLOBALS['TL_DCA']['tl_module']['fields']['customNavLinksBeiPlatzmangel'] = [
+    'exclude' => true,
+    'inputType' => 'checkbox',
+    'eval' => ['tl_class' => 'w50'],
     'sql' => ['type' => 'boolean', 'default' => true],
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['customNavWiedereinblenden'] = [
     'exclude' => true,
     'inputType' => 'checkbox',
-    'eval' => ['submitOnChange' => true, 'tl_class' => 'clr'],
+    'eval' => ['submitOnChange' => true, 'tl_class' => 'w50 clr'],
     'sql' => ['type' => 'boolean', 'default' => true],
 ];
 
@@ -56,17 +74,44 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['customNavWiedereinblendenDauer'] = [
     'sql' => ['type' => 'integer', 'unsigned' => true, 'default' => 1000],
 ];
 
-$GLOBALS['TL_DCA']['tl_module']['fields']['customNavLinksBeiPlatzmangel'] = [
+// Darstellung
+
+$GLOBALS['TL_DCA']['tl_module']['fields']['customNavSymbol'] = [
+    'exclude' => true,
+    'inputType' => 'select',
+    'options' => ['chevron', 'pfeil', 'dreieck', 'plus', 'keins'],
+    'reference' => &$GLOBALS['TL_LANG']['tl_module']['customNavSymbolOptionen'],
+    'eval' => ['tl_class' => 'w50'],
+    'sql' => ['type' => 'string', 'length' => 16, 'default' => 'chevron'],
+];
+
+$GLOBALS['TL_DCA']['tl_module']['fields']['customNavSchatten'] = [
+    'exclude' => true,
+    'inputType' => 'select',
+    'options' => ['mit', 'ohne'],
+    'reference' => &$GLOBALS['TL_LANG']['tl_module']['customNavSchattenOptionen'],
+    'eval' => ['includeBlankOption' => true, 'tl_class' => 'w50'],
+    'sql' => ['type' => 'string', 'length' => 8, 'default' => ''],
+];
+
+$GLOBALS['TL_DCA']['tl_module']['fields']['customNavSymbolEigenes'] = [
     'exclude' => true,
     'inputType' => 'checkbox',
-    'eval' => ['tl_class' => 'clr'],
-    'sql' => ['type' => 'boolean', 'default' => true],
+    'eval' => ['submitOnChange' => true, 'tl_class' => 'w50 clr'],
+    'sql' => ['type' => 'boolean', 'default' => false],
+];
+
+$GLOBALS['TL_DCA']['tl_module']['fields']['customNavSymbolDatei'] = [
+    'exclude' => true,
+    'inputType' => 'fileTree',
+    'eval' => ['fieldType' => 'radio', 'filesOnly' => true, 'extensions' => 'svg', 'mandatory' => true, 'tl_class' => 'clr'],
+    'sql' => 'binary(16) NULL',
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['customNavAnimation'] = [
     'exclude' => true,
     'inputType' => 'checkbox',
-    'eval' => ['submitOnChange' => true, 'tl_class' => 'clr'],
+    'eval' => ['submitOnChange' => true, 'tl_class' => 'w50 clr'],
     'sql' => ['type' => 'boolean', 'default' => false],
 ];
 
@@ -75,29 +120,4 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['customNavAnimationDauer'] = [
     'inputType' => 'text',
     'eval' => ['mandatory' => true, 'rgxp' => 'natural', 'minval' => 50, 'maxval' => 1000, 'maxlength' => 4, 'tl_class' => 'w50'],
     'sql' => ['type' => 'integer', 'unsigned' => true, 'default' => 150],
-];
-
-$GLOBALS['TL_DCA']['tl_module']['fields']['customNavSchatten'] = [
-    'exclude' => true,
-    'inputType' => 'select',
-    'options' => ['mit', 'ohne'],
-    'reference' => &$GLOBALS['TL_LANG']['tl_module']['customNavSchattenOptionen'],
-    'eval' => ['includeBlankOption' => true, 'tl_class' => 'w50 clr'],
-    'sql' => ['type' => 'string', 'length' => 8, 'default' => ''],
-];
-
-$GLOBALS['TL_DCA']['tl_module']['fields']['customNavSymbol'] = [
-    'exclude' => true,
-    'inputType' => 'select',
-    'options' => ['chevron', 'pfeil', 'dreieck', 'plus', 'keins', 'eigenes'],
-    'reference' => &$GLOBALS['TL_LANG']['tl_module']['customNavSymbolOptionen'],
-    'eval' => ['includeBlankOption' => true, 'submitOnChange' => true, 'tl_class' => 'w50 clr'],
-    'sql' => ['type' => 'string', 'length' => 16, 'default' => 'chevron'],
-];
-
-$GLOBALS['TL_DCA']['tl_module']['fields']['customNavSymbolDatei'] = [
-    'exclude' => true,
-    'inputType' => 'fileTree',
-    'eval' => ['fieldType' => 'radio', 'filesOnly' => true, 'extensions' => 'svg', 'mandatory' => true, 'tl_class' => 'clr'],
-    'sql' => 'binary(16) NULL',
 ];

@@ -55,10 +55,8 @@ final class NavigationModuleListener
             return;
         }
 
-        $legend = $this->translator->trans('tl_module.custom_navigation_legend', [], 'contao_tl_module');
-
         $this->framework->getAdapter(Message::class)->addInfo(
-            $this->translator->trans('tl_module.customNavNurBarrierefrei', [$legend], 'contao_tl_module'),
+            $this->translator->trans('tl_module.customNavNurBarrierefrei', [], 'contao_tl_module'),
         );
     }
 
