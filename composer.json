@@ -1,0 +1,57 @@
+{
+    "name": "heimseiten/contao-custom-navigation-bundle",
+    "description": "Sicherheitsdreieck für das barrierefreie Navigationsmenü von Contao: Fährt die Maus schräg auf ein Untermenü zu und streift dabei andere Menüpunkte, bleibt das Untermenü geöffnet. Außerdem im Navigationsmodul einstellbar: Wiedereinblenden nach kurzem Verlassen, Öffnungsrichtung seitlicher Untermenüs bei Platzmangel und das Symbol für Menüpunkte mit Untermenü.",
+    "keywords": [
+        "navigation",
+        "menü",
+        "menu",
+        "untermenü",
+        "submenu",
+        "dropdown",
+        "flyout",
+        "sicherheitsdreieck",
+        "safe triangle",
+        "menu aim",
+        "hover",
+        "barrierefrei",
+        "mod_navigation_accessible"
+    ],
+    "type": "contao-bundle",
+    "license": "GPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "heimseiten.de - Webdesign aus Köln",
+            "email": "info@heimseiten.de",
+            "homepage": "https://www.heimseiten.de/",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/heimseiten/contao-custom-navigation-bundle/issues",
+        "source": "https://github.com/heimseiten/contao-custom-navigation-bundle"
+    },
+    "require": {
+        "php": "^8.3",
+        "contao/core-bundle": "^5.7 || ^6.0",
+        "symfony/asset": "^7.4 || ^8.0",
+        "twig/twig": "^3.0"
+    },
+    "require-dev": {
+        "contao/manager-plugin": "^2.12"
+    },
+    "autoload": {
+        "psr-4": {
+            "Heimseiten\\ContaoCustomNavigationBundle\\": "src/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "contao-components/installer": false,
+            "contao/manager-plugin": false,
+            "php-http/discovery": false
+        }
+    },
+    "extra": {
+        "contao-manager-plugin": "Heimseiten\\ContaoCustomNavigationBundle\\ContaoManager\\Plugin"
+    }
+}

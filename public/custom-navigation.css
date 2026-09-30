@@ -1,0 +1,131 @@
+/*
+ * Custom Navigation – Untermenüs im barrierefreien Navigationsmenü von Contao.
+ *
+ * Alle Regeln gelten nur in der Desktop-Ansicht (body.nav-is-desktop) und nur in
+ * Navigationsmodulen, in denen eine Einstellung der Erweiterung aktiv ist
+ * (.custom-navigation). Die mobile Ansicht bleibt unverändert.
+ */
+
+/*
+ * Geöffnete Untermenüs sind sichtbar – maßgeblich ist der Zustand, den Contao führt
+ * (.nav-expanded), nicht :hover. Themes, die Untermenüs nur per :hover einblenden,
+ * würden ein Untermenü sonst ausblenden, während die Maus darauf zufährt (Sicherheits-
+ * dreieck, .nav-gehalten) oder nachdem sie zurückgekehrt ist (Wiedereinblenden).
+ */
+body.nav-is-desktop .custom-navigation:is([data-nav-dreieck], [data-nav-wiedereinblenden]) .navigation-main li.nav-expanded:not(.nav-ruht) > ul,
+body.nav-is-desktop .custom-navigation:is([data-nav-dreieck], [data-nav-wiedereinblenden]) .navigation-main li.nav-expanded:not(.nav-ruht) > .ul-wrapper,
+body.nav-is-desktop .custom-navigation:is([data-nav-dreieck], [data-nav-wiedereinblenden]) .navigation-main li.nav-expanded:not(.nav-ruht) > .ul-wrapper > ul {
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/*
+ * Solange ein Untermenü gehalten wird oder ruht, bleiben alle anderen, nicht geöffneten
+ * Untermenüs verborgen – auch dann, wenn ein Theme sie beim Überfahren per :hover zeigt.
+ */
+body.nav-is-desktop .custom-navigation .navigation-main:has(li.nav-gehalten, li.nav-ruht) li:not(.nav-expanded) > ul,
+body.nav-is-desktop .custom-navigation .navigation-main:has(li.nav-gehalten, li.nav-ruht) li:not(.nav-expanded) > .ul-wrapper {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/*
+ * Wiedereinblenden: Hat die Maus das Menü verlassen, verschwindet das Untermenü sofort,
+ * bleibt für Contao aber geöffnet (.nav-ruht). Kehrt die Maus rechtzeitig zurück,
+ * erscheint es wieder. Nur visibility statt display, damit der Fokus erhalten bleibt.
+ */
+body.nav-is-desktop .custom-navigation[data-nav-wiedereinblenden] .navigation-main li.nav-ruht.nav-expanded ul,
+body.nav-is-desktop .custom-navigation[data-nav-wiedereinblenden] .navigation-main li.nav-ruht.nav-expanded > .ul-wrapper {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: none !important;
+}
+
+/*
+ * Symbol für Untermenüs: Die Symbole sind Masken und nehmen damit die Schriftfarbe an.
+ * Sie zeigen nach rechts; in der ersten Ebene dreht Contao sie nach unten.
+ * Anpassbar über --custom-navigation-symbol (url(…)) und --custom-navigation-symbol-groesse.
+ */
+.custom-navigation[data-nav-symbol="chevron"],
+.custom-navigation[data-nav-symbol="keins"] {
+    --custom-navigation-symbol: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18l6-6-6-6'/%3E%3C/svg%3E");
+}
+
+.custom-navigation[data-nav-symbol="pfeil"] {
+    --custom-navigation-symbol: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6'/%3E%3C/svg%3E");
+}
+
+.custom-navigation[data-nav-symbol="dreieck"] {
+    --custom-navigation-symbol: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000' stroke='%23000' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpath d='M9 6.5v11l7.5-5.5z'/%3E%3C/svg%3E");
+}
+
+.custom-navigation[data-nav-symbol="plus"] {
+    --custom-navigation-symbol: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 6v12M6 12h12'/%3E%3C/svg%3E");
+    --custom-navigation-symbol-offen: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E");
+}
+
+/* Das Symbol folgt der Farbe des Menüpunkts – mit denselben Farbvariablen wie Contao. */
+body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main li > .btn-toggle-submenu {
+    color: var(--nav-color, currentColor);
+}
+
+body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main li > :is(a:hover, a:focus-visible, a.trail, strong) + .btn-toggle-submenu,
+body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main li > .btn-toggle-submenu:is(:hover, :focus-visible) {
+    color: var(--nav-active-color, currentColor);
+}
+
+/*
+ * Den Kasten des Symbols selbst festlegen: Manche Themes zeichnen eigene Symbole in
+ * ::before/::after der Schaltfläche. Mit gewähltem Symbol gilt nur noch dieses.
+ */
+body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main li > .btn-toggle-submenu::before {
+    content: none;
+}
+
+body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main li > .btn-toggle-submenu::after {
+    content: "";
+    position: static;
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background: currentColor;
+    filter: none;
+    -webkit-mask-image: var(--custom-navigation-symbol);
+    mask-image: var(--custom-navigation-symbol);
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-size: var(--custom-navigation-symbol-groesse, 20px);
+    mask-size: var(--custom-navigation-symbol-groesse, 20px);
+}
+
+/* Ab der zweiten Ebene dreht Contao das Symbol nicht; Verschiebungen eines Themes aufheben. */
+body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main ul ul li > .btn-toggle-submenu::after {
+    transform: none;
+}
+
+/* Seitliche Untermenüs, die wegen Platzmangels nach links öffnen: Symbol spiegeln. */
+body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main ul ul li:has(> ul.bounds-right, > .ul-wrapper > ul.bounds-right) > .btn-toggle-submenu::after,
+body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main ul ul ul.bounds-right li > .btn-toggle-submenu::after {
+    transform: scaleX(-1);
+}
+
+/* Plus und Minus werden nicht gedreht: Geöffnet zeigt das Symbol ein Minus. */
+body.nav-is-desktop .custom-navigation[data-nav-symbol="plus"] .navigation-main li.submenu > .btn-toggle-submenu::after {
+    transform: none;
+}
+
+body.nav-is-desktop .custom-navigation[data-nav-symbol="plus"] .navigation-main li.nav-expanded:not(.nav-ruht) > .btn-toggle-submenu::after {
+    -webkit-mask-image: var(--custom-navigation-symbol-offen);
+    mask-image: var(--custom-navigation-symbol-offen);
+}
+
+/* Kein Symbol: Der Schalter bleibt für die Tastatur erreichbar und zeigt sich mit dem Fokus. */
+body.nav-is-desktop .custom-navigation[data-nav-symbol="keins"] .navigation-main li > .btn-toggle-submenu:not(:focus-visible)::after {
+    visibility: hidden;
+}

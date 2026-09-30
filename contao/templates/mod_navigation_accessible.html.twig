@@ -1,0 +1,39 @@
+{% extends "@Contao/mod_navigation_accessible.html.twig" %}
+{% use "@Contao/component/_stylesheet.html.twig" %}
+
+{#
+    Überträgt die Einstellungen aus dem Navigationsmodul (Legende „Untermenüs (Desktop)“)
+    als Klasse, Datenattribute und Stilvariable an den Wrapper des Moduls. Skript und
+    Stylesheet werden nur eingebunden, wenn eine der Einstellungen aktiv ist.
+
+    Alles Nötige steht im Block „content“: Themes schalten das Contao-Stylesheet häufig über
+    einen leeren Block „style“ ab – die Erweiterung soll davon nicht mit betroffen sein.
+#}
+{% set custom_navigation = custom_navigation() %}
+
+{% if custom_navigation.attributes %}
+    {% set wrapper_attributes = attrs(custom_navigation.attributes).mergeWith(wrapper_attributes|default) %}
+{% endif %}
+
+{% block content %}
+    {% if custom_navigation.stylesheet %}
+        {% add 'custom_navigation_css' to stylesheets %}
+            {% with {file: custom_navigation.stylesheet} %}
+                {{ block('stylesheet_component') }}
+            {% endwith %}
+        {% endadd %}
+    {% endif %}
+
+    {% if custom_navigation.script %}
+        {% add 'custom_navigation_js' to head %}
+            <script src="{{ custom_navigation.script }}" type="module"></script>
+        {% endadd %}
+    {% endif %}
+
+    {# Ein eigenes Symbol steht als Stilvariable im style-Attribut, das bei aktiver Content Security Policy einen Hash braucht. #}
+    {% if custom_navigation.inline_style %}
+        {% do wrapper_attributes|csp_unsafe_inline_style %}
+    {% endif %}
+
+    {{ parent() }}
+{% endblock %}

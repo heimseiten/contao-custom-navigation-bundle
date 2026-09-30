@@ -1,0 +1,13 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    Heimseiten\ContaoCustomNavigationBundle\:
+        resource: '../src/'
+        exclude: '../src/{HeimseitenContaoCustomNavigationBundle.php,ContaoManager}'
+
+    Heimseiten\ContaoCustomNavigationBundle\Twig\CustomNavigationRuntime:
+        arguments:
+            $filesContext: '@contao.assets.files_context'
+            $assetVersion: '%heimseiten_custom_navigation.asset_version%'
