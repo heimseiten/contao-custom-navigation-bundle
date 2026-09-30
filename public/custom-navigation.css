@@ -12,9 +12,9 @@
  * würden ein Untermenü sonst ausblenden, während die Maus darauf zufährt (Sicherheits-
  * dreieck, .nav-gehalten) oder nachdem sie zurückgekehrt ist (Wiedereinblenden).
  */
-body.nav-is-desktop .custom-navigation:is([data-nav-dreieck], [data-nav-wiedereinblenden]) .navigation-main li.nav-expanded:not(.nav-ruht) > ul,
-body.nav-is-desktop .custom-navigation:is([data-nav-dreieck], [data-nav-wiedereinblenden]) .navigation-main li.nav-expanded:not(.nav-ruht) > .ul-wrapper,
-body.nav-is-desktop .custom-navigation:is([data-nav-dreieck], [data-nav-wiedereinblenden]) .navigation-main li.nav-expanded:not(.nav-ruht) > .ul-wrapper > ul {
+body.nav-is-desktop .custom-navigation:is([data-nav-dreieck], [data-nav-wiedereinblenden]) .navigation-main li.nav-expanded > ul,
+body.nav-is-desktop .custom-navigation:is([data-nav-dreieck], [data-nav-wiedereinblenden]) .navigation-main li.nav-expanded > .ul-wrapper,
+body.nav-is-desktop .custom-navigation:is([data-nav-dreieck], [data-nav-wiedereinblenden]) .navigation-main li.nav-expanded > .ul-wrapper > ul {
     visibility: visible !important;
     opacity: 1 !important;
     pointer-events: auto !important;
@@ -23,22 +23,10 @@ body.nav-is-desktop .custom-navigation:is([data-nav-dreieck], [data-nav-wiederei
 /*
  * Solange ein Untermenü gehalten wird oder ruht, bleiben alle anderen, nicht geöffneten
  * Untermenüs verborgen – auch dann, wenn ein Theme sie beim Überfahren per :hover zeigt.
+ * Ruhende Menüpunkte selbst sind ausgenommen: Sie blenden aus wie beim Schließen.
  */
-body.nav-is-desktop .custom-navigation .navigation-main:has(li.nav-gehalten, li.nav-ruht) li:not(.nav-expanded) > ul,
-body.nav-is-desktop .custom-navigation .navigation-main:has(li.nav-gehalten, li.nav-ruht) li:not(.nav-expanded) > .ul-wrapper {
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    transition: none !important;
-}
-
-/*
- * Wiedereinblenden: Hat die Maus das Menü verlassen, verschwindet das Untermenü sofort,
- * bleibt für Contao aber geöffnet (.nav-ruht). Kehrt die Maus rechtzeitig zurück,
- * erscheint es wieder. Nur visibility statt display, damit der Fokus erhalten bleibt.
- */
-body.nav-is-desktop .custom-navigation[data-nav-wiedereinblenden] .navigation-main li.nav-ruht.nav-expanded ul,
-body.nav-is-desktop .custom-navigation[data-nav-wiedereinblenden] .navigation-main li.nav-ruht.nav-expanded > .ul-wrapper {
+body.nav-is-desktop .custom-navigation .navigation-main:has(li.nav-gehalten, li.nav-ruht) li:not(.nav-expanded, .nav-ruht) > ul,
+body.nav-is-desktop .custom-navigation .navigation-main:has(li.nav-gehalten, li.nav-ruht) li:not(.nav-expanded, .nav-ruht) > .ul-wrapper {
     visibility: hidden !important;
     opacity: 0 !important;
     pointer-events: none !important;
@@ -59,9 +47,10 @@ body.nav-is-desktop .custom-navigation[data-nav-wiedereinblenden] .navigation-ma
         transition-behavior: allow-discrete;
     }
 
-    /* Beim Schließen durchsichtig werden und keine Mausereignisse mehr annehmen. */
-    body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main li:not(.nav-expanded) > ul,
-    body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main li:not(.nav-expanded) > .ul-wrapper > ul {
+    /* Beim Schließen durchsichtig werden und keine Mausereignisse mehr annehmen. Was ein
+       Theme per :hover zeigt, bleibt dessen Sache. */
+    body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main li:not(.nav-expanded, :hover) > ul,
+    body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main li:not(.nav-expanded, :hover) > .ul-wrapper > ul {
         opacity: 0;
         pointer-events: none;
     }
@@ -77,8 +66,8 @@ body.nav-is-desktop .custom-navigation[data-nav-wiedereinblenden] .navigation-ma
     /* Beim Öffnen aus der Durchsichtigkeit heraus – mit derselben Gewichtung wie die
        Sichtbarkeitsregel oben, deshalb auch hier !important. */
     @starting-style {
-        body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main li.nav-expanded:not(.nav-ruht) > ul,
-        body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main li.nav-expanded:not(.nav-ruht) > .ul-wrapper > ul {
+        body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main li.nav-expanded > ul,
+        body.nav-is-desktop .custom-navigation[data-nav-animation] .navigation-main li.nav-expanded > .ul-wrapper > ul {
             opacity: 0 !important;
         }
     }
@@ -111,9 +100,11 @@ body.nav-is-desktop .custom-navigation[data-nav-schatten="ohne"] .navigation-mai
     --custom-navigation-symbol: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23000' stroke='%23000' stroke-width='1.5' stroke-linejoin='round'%3E%3Cpath d='M9 6.5v11l7.5-5.5z'/%3E%3C/svg%3E");
 }
 
+/* Plus aus zwei Schichten: Beim Öffnen zieht sich der senkrechte Strich ein (Minus). */
 .custom-navigation[data-nav-symbol="plus"] {
-    --custom-navigation-symbol: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 6v12M6 12h12'/%3E%3C/svg%3E");
-    --custom-navigation-symbol-offen: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E");
+    --custom-navigation-symbol:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 6v12'/%3E%3C/svg%3E");
 }
 
 /* Das Symbol folgt der Farbe des Menüpunkts – mit denselben Farbvariablen wie Contao. */
@@ -164,17 +155,39 @@ body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main ul ul u
     transform: scaleX(-1);
 }
 
-/* Plus und Minus werden nicht gedreht: Geöffnet zeigt das Symbol ein Minus. */
+/* Plus und Minus werden nicht gedreht: Geöffnet zieht sich der senkrechte Strich ein. */
 body.nav-is-desktop .custom-navigation[data-nav-symbol="plus"] .navigation-main li.submenu > .btn-toggle-submenu::after {
     transform: none;
+    -webkit-mask-size: var(--custom-navigation-symbol-groesse, 20px) var(--custom-navigation-symbol-groesse, 20px), var(--custom-navigation-symbol-groesse, 20px) var(--custom-navigation-symbol-groesse, 20px);
+    mask-size: var(--custom-navigation-symbol-groesse, 20px) var(--custom-navigation-symbol-groesse, 20px), var(--custom-navigation-symbol-groesse, 20px) var(--custom-navigation-symbol-groesse, 20px);
 }
 
-body.nav-is-desktop .custom-navigation[data-nav-symbol="plus"] .navigation-main li.nav-expanded:not(.nav-ruht) > .btn-toggle-submenu::after {
-    -webkit-mask-image: var(--custom-navigation-symbol-offen);
-    mask-image: var(--custom-navigation-symbol-offen);
+body.nav-is-desktop .custom-navigation[data-nav-symbol="plus"] .navigation-main li.submenu.nav-expanded > .btn-toggle-submenu::after {
+    -webkit-mask-size: var(--custom-navigation-symbol-groesse, 20px) var(--custom-navigation-symbol-groesse, 20px), var(--custom-navigation-symbol-groesse, 20px) 0;
+    mask-size: var(--custom-navigation-symbol-groesse, 20px) var(--custom-navigation-symbol-groesse, 20px), var(--custom-navigation-symbol-groesse, 20px) 0;
 }
 
 /* Kein Symbol: Der Schalter bleibt für die Tastatur erreichbar und zeigt sich mit dem Fokus. */
 body.nav-is-desktop .custom-navigation[data-nav-symbol="keins"] .navigation-main li > .btn-toggle-submenu:not(:focus-visible)::after {
     visibility: hidden;
+}
+
+/*
+ * Wechsel zwischen offen und geschlossen: Die Symbole drehen sich (bzw. das Plus zieht sich
+ * ein) mit einem eigenen Übergang, denn manche Themes überschreiben den von Contao.
+ */
+@media (prefers-reduced-motion: no-preference) {
+    body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main li > .btn-toggle-submenu::after {
+        transition-property: transform, -webkit-mask-size, mask-size;
+        transition-duration: var(--custom-navigation-dauer, 0.3s);
+        transition-timing-function: ease-in-out;
+    }
+}
+
+/* Kontrastmodus: Die Hintergrundfarbe würde sonst durch die Seitenfarbe ersetzt – das Symbol verschwände. */
+@media (forced-colors: active) {
+    body.nav-is-desktop .custom-navigation[data-nav-symbol] .navigation-main li > .btn-toggle-submenu::after {
+        forced-color-adjust: none;
+        background: ButtonText;
+    }
 }

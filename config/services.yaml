@@ -9,5 +9,4 @@ services:
 
     Heimseiten\ContaoCustomNavigationBundle\Twig\CustomNavigationRuntime:
         arguments:
-            $filesContext: '@contao.assets.files_context'
             $assetVersion: '%heimseiten_custom_navigation.asset_version%'

@@ -12,7 +12,7 @@
  *
  * Ist die Wartezeit vorbei, holt es die zurückgehaltenen Ereignisse nach, sodass Contao
  * seinen Zustand selbst weiterführt. Der Code von Contao bleibt unverändert; Tastatur,
- * Fokus und die mobile Ansicht behandelt Contao wie gewohnt.
+ * Fokus, Touch, Stift und die mobile Ansicht behandelt Contao wie gewohnt.
  *
  * Einstellungen am Wrapper (aus dem Navigationsmodul):
  *   data-nav-dreieck               Sicherheitsdreieck
@@ -24,8 +24,17 @@
 /** Klasse, solange ein Untermenü für die heranfahrende Maus offen gehalten wird. */
 const HELD = 'nav-gehalten';
 
-/** Klasse, solange ein Untermenü ausgeblendet, für Contao aber noch geöffnet ist. */
+/**
+ * Klasse, solange ein Menüpunkt nach dem Verlassen des Menüs sichtbar geschlossen, für
+ * Contao aber noch geöffnet ist (Wiedereinblenden). Die Klasse nav-expanded nimmt das
+ * Skript dafür vorübergehend weg: Untermenü, Symbol und Überblendung verhalten sich dann wie
+ * beim Schließen.
+ */
 const RESTING = 'nav-ruht';
+
+const EXPANDED = 'nav-expanded';
+
+const BOUNDS = ['bounds-right', 'bounds-left'];
 
 /** So lange darf die Maus im Kegel zum Untermenü innehalten, bevor es freigegeben wird. */
 const AIM_TIMEOUT = 300;
@@ -52,6 +61,20 @@ function getSubmenu(li) {
     }
 
     return null;
+}
+
+function getToggle(li) {
+    return li.querySelector(':scope > .btn-toggle-submenu');
+}
+
+/**
+ * Ist der Menüpunkt für Contao geöffnet? Maßgeblich ist aria-expanded des Schalters, das
+ * Contao selbst pflegt – die Klasse nav-expanded nimmt das Skript beim Wiedereinblenden weg.
+ */
+function isOpen(li) {
+    const toggle = getToggle(li);
+
+    return toggle ? 'true' === toggle.getAttribute('aria-expanded') : li.classList.contains(EXPANDED);
 }
 
 function isSubmenuItem(element) {
@@ -106,20 +129,20 @@ function isAimingAt(from, to, rect) {
 }
 
 class CustomNavigation {
-    #wrapper;
     #navigation;
     #triangle;
     #returnTime;
     #direction;
     #fadeTime;
     #frozen = new Map();
+    #thawed = new WeakSet();
     #pending = null;
+    #returning = null;
     #point = null;
     #bypass = false;
     #open = new WeakSet();
 
     constructor(wrapper, navigation) {
-        this.#wrapper = wrapper;
         this.#navigation = navigation;
         this.#triangle = wrapper.hasAttribute('data-nav-dreieck');
         this.#returnTime = parseInt(wrapper.dataset.navWiedereinblenden, 10) || 0;
@@ -134,7 +157,7 @@ class CustomNavigation {
         new MutationObserver((records) => this.#onMutation(records)).observe(navigation, {
             subtree: true,
             attributes: true,
-            attributeFilter: ['class'],
+            attributeFilter: ['class', 'aria-expanded'],
             attributeOldValue: true,
         });
     }
@@ -144,15 +167,19 @@ class CustomNavigation {
      * damit nur frühere Positionen.
      */
     handleMove(event) {
-        const pending = this.#pending;
+        if (!this.#isActive()) {
+            this.settle();
 
-        if (!pending) {
             return;
         }
 
-        if (!this.#isActive()) {
-            this.#cancel();
+        if (this.#returning) {
+            this.#syncAfterReturn(event.target);
+        }
 
+        const pending = this.#pending;
+
+        if (!pending) {
             return;
         }
 
@@ -171,6 +198,23 @@ class CustomNavigation {
         }
     }
 
+    /**
+     * Bedienung mit Touch, Stift oder Wechsel in die mobile Ansicht: Warten beenden und
+     * Contao schließen lassen, was die Maus verlassen hat.
+     */
+    settle() {
+        this.#returning = null;
+
+        const pending = this.#pending;
+
+        if (!pending) {
+            return;
+        }
+
+        this.#clearPending();
+        this.#close(pending.items);
+    }
+
     #isActive() {
         return 'mouse' === pointerType && isDesktop();
     }
@@ -183,7 +227,7 @@ class CustomNavigation {
         }
 
         if (!this.#isActive()) {
-            this.#cancel();
+            this.settle();
 
             return;
         }
@@ -191,12 +235,17 @@ class CustomNavigation {
         const pending = this.#pending;
 
         if (pending) {
-            // Verlässt die Maus zugleich einen übergeordneten Menüpunkt, wird auch er
-            // gehalten. Alle anderen Menüpunkte (die unterwegs gestreiften) dürfen Contao
-            // nicht erreichen: Ihr mouseleave würde das wartende Untermenü schließen.
-            if (li.contains(pending.items[0]) && li.classList.contains('nav-expanded') && !pending.items.includes(li)) {
+            // Verlässt die Maus zugleich einen übergeordneten Menüpunkt, wartet auch er.
+            // Alle anderen Menüpunkte (die unterwegs gestreiften) dürfen Contao nicht
+            // erreichen: Ihr mouseleave würde das wartende Untermenü schließen.
+            if (li.contains(pending.items[0]) && isOpen(li) && !pending.items.includes(li)) {
                 pending.items.push(li);
-                li.classList.add(pending.resting ? RESTING : HELD);
+
+                if (pending.resting) {
+                    this.#rest(li);
+                } else {
+                    li.classList.add(HELD);
+                }
             }
 
             event.stopPropagation();
@@ -204,7 +253,7 @@ class CustomNavigation {
             return;
         }
 
-        if (!li.classList.contains('nav-expanded')) {
+        if (!li.classList.contains(EXPANDED)) {
             return;
         }
 
@@ -214,7 +263,9 @@ class CustomNavigation {
         if (this.#triangle && submenu && isAimingAt(history[0], point, submenu.getBoundingClientRect())) {
             event.stopPropagation();
             this.#point = point;
-            this.#startAiming(li);
+            this.#pending = this.#createPending([li]);
+            li.classList.add(HELD);
+            this.#restartAimTimer();
 
             return;
         }
@@ -230,13 +281,30 @@ class CustomNavigation {
     #onEnter(event) {
         const li = event.target;
 
-        if (this.#bypass || !this.#pending || !isSubmenuItem(li) || !this.#navigation.contains(li)) {
+        if (this.#bypass || !isSubmenuItem(li) || !this.#navigation.contains(li)) {
             return;
         }
 
-        // Die Maus erreicht den wartenden Menüpunkt oder sein Untermenü: Contao darf es
-        // mitbekommen. Jeder andere Menüpunkt wird erst nach dem Warten geöffnet.
-        if (this.#pending.items[0].contains(li)) {
+        if (!this.#isActive()) {
+            this.settle();
+
+            return;
+        }
+
+        // Für Contao schon geöffnet (auch ruhend): Contao würde den Menüpunkt zu- und wieder
+        // aufklappen und dabei die Reihenfolge seiner geöffneten Menüpunkte umstellen. Beim
+        // nächsten Nachbarn schlösse es dann das ganze Menü.
+        if (isOpen(li)) {
+            event.stopPropagation();
+
+            return;
+        }
+
+        const pending = this.#pending;
+
+        // Im Untermenü des Menüpunkts, auf den die Maus zufährt, darf Contao weiter öffnen.
+        // Jeder andere Menüpunkt öffnet erst nach dem Warten.
+        if (!pending || (!pending.resting && pending.items[0].contains(li))) {
             return;
         }
 
@@ -244,13 +312,9 @@ class CustomNavigation {
     }
 
     #createPending(items) {
-        return { items, resting: false, aimTimer: 0, returnTimer: 0, dwellTimer: 0, dwellItem: null };
-    }
+        this.#returning = null;
 
-    #startAiming(li) {
-        this.#pending = this.#createPending([li]);
-        li.classList.add(HELD);
-        this.#restartAimTimer();
+        return { items, resting: false, rects: new Map(), aimTimer: 0, returnTimer: 0, dwellTimer: 0, dwellItem: null };
     }
 
     #restartAimTimer() {
@@ -300,10 +364,23 @@ class CustomNavigation {
 
         for (const li of pending.items) {
             li.classList.remove(HELD);
-            li.classList.add(RESTING);
+            this.#rest(li);
         }
 
         pending.returnTimer = setTimeout(() => this.#release(), this.#returnTime);
+    }
+
+    /**
+     * Menüpunkt sichtbar schließen, für Contao aber offen lassen. Seine Maße werden vorher
+     * festgehalten: Geschlossen hat das Untermenü keine Größe mehr, die Rückkehr der Maus in
+     * seinen Bereich soll trotzdem zählen.
+     */
+    #rest(li) {
+        const submenu = getSubmenu(li);
+
+        this.#pending.rects.set(li, [li.getBoundingClientRect(), submenu?.getBoundingClientRect()]);
+        li.classList.add(RESTING);
+        li.classList.remove(EXPANDED);
     }
 
     #whileResting(point, target) {
@@ -327,20 +404,44 @@ class CustomNavigation {
     }
 
     /**
-     * Die Maus ist zurück: Das Untermenü erscheint wieder. Menüpunkte, über denen sie
-     * nicht mehr steht, werden geschlossen – von innen nach außen, wie es Contao selbst
-     * tun würde.
+     * Die Maus ist zurück: Menüpunkte, über denen sie steht, öffnen sich wieder; innere, über
+     * denen sie nicht mehr steht, schließt Contao – von innen nach außen, wie sonst auch.
      */
     #comeBack(point, target) {
         const { items } = this.#pending;
-        let keep = false;
+        const over = items.map((li) => this.#isOver(li, point, target));
+        const kept = [];
 
         this.#clearPending();
 
-        for (const li of items) {
-            keep = keep || this.#isOver(li, point, target);
+        items.forEach((li, index) => {
+            if (kept.length || over[index]) {
+                li.classList.add(EXPANDED);
+                kept.push(li);
+            } else if (isOpen(li)) {
+                this.#dispatch(li, 'mouseleave');
+            }
+        });
 
-            if (!keep) {
+        this.#returning = kept.length ? kept : null;
+    }
+
+    /**
+     * Erste Mausbewegung nach der Rückkehr: Erst jetzt sieht der Browser die Maus wieder über
+     * den eingeblendeten Untermenüs. Menüpunkte, in denen sie nicht steht, bekämen deshalb nie
+     * ein mouseleave – das Skript holt es nach.
+     */
+    #syncAfterReturn(target) {
+        const items = this.#returning;
+
+        this.#returning = null;
+
+        for (const li of items) {
+            if (li.contains(target)) {
+                break;
+            }
+
+            if (isOpen(li)) {
                 this.#dispatch(li, 'mouseleave');
             }
         }
@@ -358,16 +459,9 @@ class CustomNavigation {
         }
 
         this.#clearPending();
+        this.#close(pending.items);
 
-        if (!isDesktop()) {
-            return;
-        }
-
-        for (const li of pending.items) {
-            this.#dispatch(li, 'mouseleave');
-        }
-
-        const element = this.#point && document.elementFromPoint(this.#point.x, this.#point.y);
+        const element = isDesktop() && this.#point && document.elementFromPoint(this.#point.x, this.#point.y);
 
         if (!element || !this.#navigation.contains(element)) {
             return;
@@ -380,15 +474,28 @@ class CustomNavigation {
         }
 
         for (const li of chain) {
-            if (isSubmenuItem(li) && !li.classList.contains('nav-expanded')) {
+            if (isSubmenuItem(li) && !isOpen(li)) {
                 this.#dispatch(li, 'mouseenter');
             }
         }
     }
 
-    /** Beendet das Warten ohne nachzuholen. */
-    #cancel() {
-        this.#clearPending();
+    /**
+     * Menüpunkte durch Contao schließen lassen, von innen nach außen. In der mobilen Ansicht
+     * hat Contao seine Maus-Listener abgemeldet; dort schließt der Schalter des Menüpunkts.
+     */
+    #close(items) {
+        for (const li of items) {
+            if (!isOpen(li)) {
+                continue;
+            }
+
+            if (isDesktop()) {
+                this.#dispatch(li, 'mouseleave');
+            } else {
+                getToggle(li)?.click();
+            }
+        }
     }
 
     #clearPending() {
@@ -410,10 +517,6 @@ class CustomNavigation {
     }
 
     #dispatch(li, type) {
-        if ('mouseleave' === type && !li.classList.contains('nav-expanded')) {
-            return;
-        }
-
         this.#bypass = true;
 
         try {
@@ -431,19 +534,13 @@ class CustomNavigation {
         return !element || !this.#navigation.contains(element);
     }
 
-    /**
-     * Liegt die Maus über dem Menüpunkt oder seinem Untermenü? Das Untermenü ist beim
-     * Wiedereinblenden unsichtbar und nimmt keine Mausereignisse an – verlässlich ist
-     * dann nur sein Rechteck.
-     */
+    /** Steht die Maus über dem Menüpunkt oder dem Bereich seines (geschlossenen) Untermenüs? */
     #isOver(li, point, target) {
         if (li.contains(target) || contains(li.getBoundingClientRect(), point)) {
             return true;
         }
 
-        const submenu = getSubmenu(li);
-
-        return !!submenu && contains(submenu.getBoundingClientRect(), point);
+        return (this.#pending?.rects.get(li) ?? []).some((rect) => rect && contains(rect, point));
     }
 
     #getItem(element) {
@@ -458,8 +555,10 @@ class CustomNavigation {
     }
 
     #onMutation(records) {
-        for (const { target, oldValue } of records) {
-            if (isSubmenuItem(target)) {
+        for (const { target, attributeName, oldValue } of records) {
+            if ('aria-expanded' === attributeName) {
+                this.#onToggleChange(target);
+            } else if (isSubmenuItem(target)) {
                 this.#onSubmenuChange(target);
             } else if (target instanceof HTMLUListElement) {
                 if ('rechts' === this.#direction) {
@@ -471,8 +570,17 @@ class CustomNavigation {
         }
     }
 
+    /** Contao hat einen wartenden Menüpunkt selbst geschlossen (Escape, Fokus, Klick): Das Warten ist hinfällig. */
+    #onToggleChange(toggle) {
+        const li = toggle.parentElement;
+
+        if (this.#pending?.items.includes(li) && !isOpen(li)) {
+            this.#clearPending();
+        }
+    }
+
     #onSubmenuChange(li) {
-        const open = li.classList.contains('nav-expanded');
+        const open = li.classList.contains(EXPANDED);
 
         if (open === this.#open.has(li)) {
             return;
@@ -490,22 +598,21 @@ class CustomNavigation {
 
         this.#open.delete(li);
 
+        // Ruhend bleibt der Menüpunkt für Contao geöffnet – samt Öffnungsrichtung.
+        if (li.classList.contains(RESTING)) {
+            return;
+        }
+
         // Contao entfernt die Markierung nur an Listen direkt im Menüpunkt; steckt die Liste
         // in einer Hülle, übernimmt das Skript – nach dem Ausblenden, wenn eingestellt.
         if (submenu && submenu.parentElement !== li) {
-            const marks = ['bounds-right', 'bounds-left'].filter((mark) => submenu.classList.contains(mark));
+            const marks = BOUNDS.filter((mark) => submenu.classList.contains(mark));
 
             if (marks.length && this.#isFading(submenu)) {
                 this.#freeze(submenu, marks);
             } else {
-                submenu.classList.remove('bounds-right', 'bounds-left');
+                submenu.classList.remove(...BOUNDS);
             }
-        }
-
-        // Contao hat ein wartendes Untermenü selbst geschlossen (Escape, Fokus, Klick):
-        // Das Warten ist damit hinfällig.
-        if (this.#pending?.items.includes(li)) {
-            this.#cancel();
         }
     }
 
@@ -528,7 +635,7 @@ class CustomNavigation {
         }
 
         if ('rechts' === this.#direction) {
-            submenu.classList.remove('bounds-right', 'bounds-left');
+            submenu.classList.remove(...BOUNDS);
 
             return;
         }
@@ -539,7 +646,7 @@ class CustomNavigation {
             return;
         }
 
-        submenu.classList.remove('bounds-right', 'bounds-left');
+        submenu.classList.remove(...BOUNDS);
 
         const rect = submenu.getBoundingClientRect();
 
@@ -557,7 +664,14 @@ class CustomNavigation {
      * der Überblendung stehen.
      */
     #keepPosition(ul, oldValue) {
-        const marks = ['bounds-right', 'bounds-left'].filter((mark) => (oldValue || '').split(/\s+/).includes(mark) && !ul.classList.contains(mark));
+        // Die Markierung hat das Skript selbst nach dem Ausblenden entfernt.
+        if (this.#thawed.has(ul)) {
+            this.#thawed.delete(ul);
+
+            return;
+        }
+
+        const marks = BOUNDS.filter((mark) => (oldValue || '').split(/\s+/).includes(mark) && !ul.classList.contains(mark));
 
         if (!marks.length) {
             return;
@@ -565,14 +679,24 @@ class CustomNavigation {
 
         const li = ul.parentElement.closest('li');
 
-        if (li && !li.classList.contains('nav-expanded') && getSubmenu(li) === ul && this.#isFading(ul)) {
+        if (li && !li.classList.contains(EXPANDED) && getSubmenu(li) === ul && this.#isFading(ul)) {
             this.#freeze(ul, marks);
         }
     }
 
-    /** Blendet die Liste gerade aus? Ohne Überblendung ist sie sofort nicht mehr sichtbar. */
+    /**
+     * Blendet die Liste gerade aus? Ohne Überblendung ist sie sofort nicht mehr sichtbar.
+     * Themes, die Untermenüs über visibility/opacity statt display verbergen, lassen die
+     * Liste dauerhaft im Layout – maßgeblich ist deshalb, ob sie noch zu sehen ist.
+     */
     #isFading(ul) {
-        return this.#fadeTime > 0 && isDesktop() && 'none' !== getComputedStyle(ul).display;
+        if (!this.#fadeTime || !isDesktop()) {
+            return false;
+        }
+
+        const style = getComputedStyle(ul);
+
+        return 'none' !== style.display && 'hidden' !== style.visibility && parseFloat(style.opacity) > 0;
     }
 
     #freeze(ul, marks) {
@@ -582,9 +706,8 @@ class CustomNavigation {
         this.#frozen.set(ul, setTimeout(() => {
             this.#frozen.delete(ul);
 
-            const li = ul.parentElement.closest('li');
-
-            if (!li?.classList.contains('nav-expanded')) {
+            if (!ul.parentElement.closest('li')?.classList.contains(EXPANDED) && marks.some((mark) => ul.classList.contains(mark))) {
+                this.#thawed.add(ul);
                 ul.classList.remove(...marks);
             }
         }, this.#fadeTime + 50));
@@ -600,22 +723,29 @@ class CustomNavigation {
 
     /** „Immer rechts“: Markierungen, die Contao an seitlichen Untermenüs setzt, entfernen. */
     #keepRight(ul) {
-        if (!ul.classList.contains('bounds-right') && !ul.classList.contains('bounds-left')) {
+        if (!BOUNDS.some((mark) => ul.classList.contains(mark))) {
             return;
         }
 
         const li = ul.parentElement.closest('li');
 
         if (li && this.#navigation.contains(li) && this.#opensSideways(li) && getSubmenu(li) === ul) {
-            ul.classList.remove('bounds-right', 'bounds-left');
+            ul.classList.remove(...BOUNDS);
         }
     }
 }
 
-// Welches Gerät zuletzt bedient wurde: Touch und Stift bleiben bei Contaos Verhalten,
-// auch auf Geräten, die zusätzlich eine Maus haben.
+// Welches Gerät zuletzt bedient wurde: Touch und Stift bleiben bei Contaos Verhalten, auch
+// auf Geräten, die zusätzlich eine Maus haben. Beginnt eine solche Bedienung, während ein
+// Menüpunkt noch wartet, schließt ihn Contao wie ohne die Erweiterung.
 const rememberPointer = (event) => {
     pointerType = event.pointerType;
+
+    if ('mouse' !== pointerType) {
+        for (const instance of instances) {
+            instance.settle();
+        }
+    }
 };
 
 document.addEventListener('pointerdown', rememberPointer, { capture: true, passive: true });

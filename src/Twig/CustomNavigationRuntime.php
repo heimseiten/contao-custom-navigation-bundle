@@ -17,8 +17,8 @@ namespace Heimseiten\ContaoCustomNavigationBundle\Twig;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\String\HtmlAttributes;
 use Contao\FilesModel;
-use Symfony\Component\Asset\Context\ContextInterface;
 use Symfony\Component\Asset\Packages;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Extension\RuntimeExtensionInterface;
 
 final class CustomNavigationRuntime implements RuntimeExtensionInterface
@@ -35,7 +35,7 @@ final class CustomNavigationRuntime implements RuntimeExtensionInterface
     public function __construct(
         private readonly ContaoFramework $framework,
         private readonly Packages $packages,
-        private readonly ContextInterface $filesContext,
+        private readonly RequestStack $requestStack,
         private readonly string $assetVersion,
     ) {
     }
@@ -142,11 +142,11 @@ final class CustomNavigationRuntime implements RuntimeExtensionInterface
             return null;
         }
 
-        // Wie bei Contaos eigenen Dateiverweisen: Basispfad der Installation bzw. die
-        // eingestellte Static-URL für Dateien, dazu der Pfad mit kodierten Abschnitten.
+        // Bewusst vom eigenen Ursprung und nicht über eine Static-URL: Browser laden
+        // CSS-Masken im CORS-Modus, von einem anderen Host bliebe das Symbol sonst leer.
         $path = implode('/', array_map(rawurlencode(...), explode('/', $file->path)));
 
-        return rtrim($this->filesContext->getBasePath(), '/').'/'.$path;
+        return ($this->requestStack->getCurrentRequest()?->getBasePath() ?? '').'/'.$path;
     }
 
     private function getAssetUrl(string $file): string

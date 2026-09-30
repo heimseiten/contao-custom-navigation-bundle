@@ -20,7 +20,7 @@ $GLOBALS['TL_LANG']['tl_module']['customNavDreieck'] = [
 ];
 $GLOBALS['TL_LANG']['tl_module']['customNavWiedereinblenden'] = [
     'Show again after briefly leaving',
-    'The submenu disappears immediately and reappears if the mouse returns in time.',
+    'The submenu closes immediately and reopens if the mouse returns in time.',
 ];
 $GLOBALS['TL_LANG']['tl_module']['customNavWiedereinblendenDauer'] = [
     'Time span in milliseconds',
@@ -40,18 +40,16 @@ $GLOBALS['TL_LANG']['tl_module']['customNavAnimationDauer'] = [
 ];
 $GLOBALS['TL_LANG']['tl_module']['customNavSchatten'] = [
     'Shadow',
-    '"Contao default" leaves the shadow of the theme unchanged.',
+    'Without a selection, the shadow of the theme remains unchanged.',
 ];
-$GLOBALS['TL_LANG']['tl_module']['customNavSchattenStandard'] = 'Contao default';
 $GLOBALS['TL_LANG']['tl_module']['customNavSchattenOptionen'] = [
     'mit' => 'With shadow',
     'ohne' => 'Without shadow',
 ];
 $GLOBALS['TL_LANG']['tl_module']['customNavSymbol'] = [
     'Submenu icon',
-    'Marks menu items with a submenu and adopts their text color.',
+    'Marks menu items with a submenu. Without a selection, the theme icon remains.',
 ];
-$GLOBALS['TL_LANG']['tl_module']['customNavSymbolStandard'] = 'Contao default';
 $GLOBALS['TL_LANG']['tl_module']['customNavSymbolOptionen'] = [
     'chevron' => 'Chevron',
     'pfeil' => 'Arrow',
@@ -62,7 +60,7 @@ $GLOBALS['TL_LANG']['tl_module']['customNavSymbolOptionen'] = [
 ];
 $GLOBALS['TL_LANG']['tl_module']['customNavSymbolDatei'] = [
     'SVG file',
-    'Single-colored icon pointing to the right. The color comes from the menu items.',
+    'Single-colored icon pointing to the right; only its shape is used.',
 ];
 
 $GLOBALS['TL_LANG']['tl_module']['customNavNurBarrierefrei'] = 'The settings under "%s" only take effect with the "mod_navigation_accessible" template.';

@@ -82,11 +82,7 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['customNavSchatten'] = [
     'inputType' => 'select',
     'options' => ['mit', 'ohne'],
     'reference' => &$GLOBALS['TL_LANG']['tl_module']['customNavSchattenOptionen'],
-    'eval' => [
-        'includeBlankOption' => true,
-        'blankOptionLabel' => &$GLOBALS['TL_LANG']['tl_module']['customNavSchattenStandard'],
-        'tl_class' => 'w50 clr',
-    ],
+    'eval' => ['includeBlankOption' => true, 'tl_class' => 'w50 clr'],
     'sql' => ['type' => 'string', 'length' => 8, 'default' => ''],
 ];
 
@@ -95,13 +91,8 @@ $GLOBALS['TL_DCA']['tl_module']['fields']['customNavSymbol'] = [
     'inputType' => 'select',
     'options' => ['chevron', 'pfeil', 'dreieck', 'plus', 'keins', 'eigenes'],
     'reference' => &$GLOBALS['TL_LANG']['tl_module']['customNavSymbolOptionen'],
-    'eval' => [
-        'includeBlankOption' => true,
-        'blankOptionLabel' => &$GLOBALS['TL_LANG']['tl_module']['customNavSymbolStandard'],
-        'submitOnChange' => true,
-        'tl_class' => 'w50 clr',
-    ],
-    'sql' => ['type' => 'string', 'length' => 16, 'default' => ''],
+    'eval' => ['includeBlankOption' => true, 'submitOnChange' => true, 'tl_class' => 'w50 clr'],
+    'sql' => ['type' => 'string', 'length' => 16, 'default' => 'chevron'],
 ];
 
 $GLOBALS['TL_DCA']['tl_module']['fields']['customNavSymbolDatei'] = [

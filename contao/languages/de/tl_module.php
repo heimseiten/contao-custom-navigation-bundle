@@ -20,7 +20,7 @@ $GLOBALS['TL_LANG']['tl_module']['customNavDreieck'] = [
 ];
 $GLOBALS['TL_LANG']['tl_module']['customNavWiedereinblenden'] = [
     'Nach kurzem Verlassen wieder einblenden',
-    'Das Untermenü verschwindet sofort und erscheint wieder, wenn die Maus rechtzeitig zurückkehrt.',
+    'Das Untermenü schließt sofort und öffnet sich wieder, wenn die Maus rechtzeitig zurückkehrt.',
 ];
 $GLOBALS['TL_LANG']['tl_module']['customNavWiedereinblendenDauer'] = [
     'Zeitspanne in Millisekunden',
@@ -40,18 +40,16 @@ $GLOBALS['TL_LANG']['tl_module']['customNavAnimationDauer'] = [
 ];
 $GLOBALS['TL_LANG']['tl_module']['customNavSchatten'] = [
     'Schatten',
-    '„Contao-Standard“ lässt den Schatten des Themes unverändert.',
+    'Ohne Auswahl bleibt der Schatten des Themes unverändert.',
 ];
-$GLOBALS['TL_LANG']['tl_module']['customNavSchattenStandard'] = 'Contao-Standard';
 $GLOBALS['TL_LANG']['tl_module']['customNavSchattenOptionen'] = [
     'mit' => 'Mit Schatten',
     'ohne' => 'Ohne Schatten',
 ];
 $GLOBALS['TL_LANG']['tl_module']['customNavSymbol'] = [
     'Symbol für Untermenüs',
-    'Kennzeichnet Menüpunkte mit Untermenü und übernimmt deren Schriftfarbe.',
+    'Kennzeichnet Menüpunkte mit Untermenü. Ohne Auswahl gilt das Symbol des Themes.',
 ];
-$GLOBALS['TL_LANG']['tl_module']['customNavSymbolStandard'] = 'Contao-Standard';
 $GLOBALS['TL_LANG']['tl_module']['customNavSymbolOptionen'] = [
     'chevron' => 'Winkel',
     'pfeil' => 'Pfeil',
@@ -62,7 +60,7 @@ $GLOBALS['TL_LANG']['tl_module']['customNavSymbolOptionen'] = [
 ];
 $GLOBALS['TL_LANG']['tl_module']['customNavSymbolDatei'] = [
     'SVG-Datei',
-    'Einfarbiges Symbol, das nach rechts zeigt. Die Farbe kommt von den Menüpunkten.',
+    'Einfarbiges Symbol, das nach rechts zeigt; verwendet wird nur seine Form.',
 ];
 
 $GLOBALS['TL_LANG']['tl_module']['customNavNurBarrierefrei'] = 'Die Einstellungen unter „%s“ wirken nur mit dem Template „mod_navigation_accessible“.';

@@ -19,11 +19,11 @@ neben dem Menüpunkt, also auf allen Ebenen.
 
 ## Weitere Einstellungen
 
-* **Nach kurzem Verlassen wieder einblenden:** Verlässt die Maus das Menü, verschwindet
-  das Untermenü sofort. Kehrt sie innerhalb der eingestellten Zeitspanne zum Menüpunkt
-  oder in den Bereich des Untermenüs zurück, erscheint es wieder. Wird auf dem Rückweg
-  ein anderer Menüpunkt gestreift, wechselt das Menü erst nach 250 Millisekunden
-  Verweilen dorthin.
+* **Nach kurzem Verlassen wieder einblenden:** Verlässt die Maus das Menü, schließt das
+  Untermenü sichtbar sofort – samt Symbol und, falls eingestellt, mit Ausblenden. Kehrt
+  die Maus innerhalb der eingestellten Zeitspanne zum Menüpunkt oder in den Bereich des
+  Untermenüs zurück, öffnet es sich wieder. Wird auf dem Rückweg ein anderer Menüpunkt
+  gestreift, wechselt das Menü erst nach 250 Millisekunden Verweilen dorthin.
 * **Bei Platzmangel nach links öffnen:** Seitliche Untermenüs ab der dritten Ebene
   öffnen nach rechts. Reicht dafür der Platz im Fenster nicht, öffnen sie nach links –
   wie im Contao-Standard. Das funktioniert auch dann, wenn ein eigenes
@@ -35,14 +35,15 @@ neben dem Menüpunkt, also auf allen Ebenen.
   nimmt keine Mausereignisse mehr an und behält seine Position. Ist im Betriebssystem
   „Bewegung reduzieren“ eingestellt, entfällt die Überblendung. Browser ohne
   `@starting-style` zeigen die Untermenüs wie bisher ohne Übergang.
-* **Schatten:** mit oder ohne Schatten unter den Untermenüs; „Contao-Standard“ lässt den
-  Schatten des Themes unverändert.
-* **Symbol für Untermenüs:** Winkel, Pfeil, Dreieck, Plus und Minus, kein Symbol oder
-  eine eigene SVG-Datei. Die Symbole übernehmen die Schriftfarbe der Menüpunkte und
-  zeigen in der ersten Ebene nach unten, in den weiteren Ebenen zur Seite; öffnet ein
+* **Schatten:** mit oder ohne Schatten unter den Untermenüs; ohne Auswahl („-“) bleibt
+  der Schatten des Themes unverändert.
+* **Symbol für Untermenüs:** Winkel (Voreinstellung, die Form des Contao-Symbols), Pfeil,
+  Dreieck, Plus und Minus, kein Symbol oder eine eigene SVG-Datei. Die Symbole zeigen in
+  der ersten Ebene nach unten, in den weiteren Ebenen zur Seite und drehen sich beim
+  Öffnen mit; das Plus zieht beim Öffnen seinen senkrechten Strich ein. Öffnet ein
   seitliches Untermenü nach links, zeigt auch das Symbol nach links. „Kein Symbol“
   blendet es nur aus: Mit der Tastatur bleibt der Schalter erreichbar und erscheint mit
-  dem Fokus.
+  dem Fokus. Ohne Auswahl („-“) bleibt das Symbol des Themes unverändert.
 
 ![Die Symbole Pfeil, Winkel, Dreieck sowie Plus und Minus](https://raw.githubusercontent.com/heimseiten/contao-custom-navigation-bundle/main/doc/symbole.png)
 
@@ -68,8 +69,8 @@ Voraussetzungen: Contao 5.7 oder 6.0 und ein Navigationsmodul mit dem Template
 | Nach kurzem Verlassen wieder einblenden | an, 1000 Millisekunden (100 bis 5000) |
 | Bei Platzmangel nach links öffnen | an |
 | Ein- und ausblenden | aus (Dauer 150 Millisekunden, 50 bis 1000) |
-| Schatten | Contao-Standard (unverändert) |
-| Symbol für Untermenüs | Contao-Standard (unverändert) |
+| Schatten | „-“ (unverändert) |
+| Symbol für Untermenüs | Winkel |
 
 Die Voreinstellungen gelten auch für bereits vorhandene Navigationsmodule. Mit
 ausgeschaltetem Sicherheitsdreieck und Wiedereinblenden öffnen und schließen sich die
@@ -102,10 +103,13 @@ Die Erweiterung lässt den Code von Contao unverändert und setzt daneben an:
   den Menüpunkten. Das Skript fängt diese Ereignisse am Wrapper ab, bevor sie die
   Menüpunkte erreichen (Capture-Phase), hält sie während des Wartens zurück und holt sie
   danach nach. Contao führt seinen Zustand (`nav-expanded`) damit selbst weiter.
-* **Stylesheet und Skript** werden nur auf Seiten geladen, auf denen ein Navigationsmodul
-  eine der Einstellungen nutzt, als eigene Dateien mit Versionskennung. Es gibt kein
-  Inline-Skript; das `style`-Attribut (Dauer der Überblendung, eigenes Symbol) bekommt
-  bei aktiver Content Security Policy einen Hash.
+* **Stylesheet und Skript** (komprimiert zusammen rund 9 KB) werden als eigene Dateien mit
+  Versionskennung geladen, sobald auf der Seite ein Navigationsmodul mit dem
+  barrierefreien Template steht. Es gibt kein Inline-Skript; das `style`-Attribut (Dauer
+  der Überblendung, eigenes Symbol) bekommt bei aktiver Content Security Policy einen
+  Hash. Ein eigenes SVG wird immer vom eigenen Server geladen, auch wenn für Dateien eine
+  Static-URL eingestellt ist: Browser laden CSS-Masken nur mit CORS-Freigabe von fremden
+  Hosts.
 
 ### Hinweise für Themes
 
@@ -117,18 +121,22 @@ Die Erweiterung lässt den Code von Contao unverändert und setzt daneben an:
   dafür wie bisher eine eigene Regel.
 * Während die Maus auf ein Untermenü zufährt, trägt dessen Menüpunkt die Klasse
   `nav-gehalten`.
-* Die Klasse `nav-ruht` kennzeichnet ein Untermenü, das nach dem Verlassen ausgeblendet
-  ist, für Contao aber noch geöffnet – etwa für Hervorhebungen des Menüpunkts:
-  `li.nav-expanded:not(.nav-ruht) > a`.
+* Die Klasse `nav-ruht` kennzeichnet einen Menüpunkt, der nach dem Verlassen sichtbar
+  geschlossen ist, für Contao aber noch geöffnet (Wiedereinblenden). Die Klasse
+  `nav-expanded` fehlt ihm in dieser Zeit, damit Untermenü, Symbol und Theme-Regeln wie
+  beim Schließen reagieren; den Zustand bei Contao zeigt weiterhin `aria-expanded` am
+  Schalter.
 * Die Einstellungen zu Überblendung und Schatten haben Vorrang vor dem Theme. Bringt ein
   Theme eigene Übergänge für Untermenüs mit, bleibt „Ein- und ausblenden“ besser aus.
   Der Schatten lässt sich über `--custom-navigation-schatten` anpassen (Standard wie im
   Contao-Stylesheet: `1px 2px 15px 8px rgb(0 0 0 / 10%)`).
 * Die Farbe der Symbole kommt aus denselben Variablen wie die Farbe der Menüpunkte im
   Stylesheet von Contao: `--nav-color` und für Hover, Fokus und aktive Punkte
-  `--nav-active-color`. Die Größe lässt sich über `--custom-navigation-symbol-groesse`
-  anpassen (Standard `20px`), das Symbol selbst über `--custom-navigation-symbol`
-  (`url(…)`).
+  `--nav-active-color`. Färbt ein Theme die Menüpunkte direkt statt über diese
+  Variablen, legt es die Farbe des Symbols über `color` an `.btn-toggle-submenu` fest.
+  Im Kontrastmodus von Windows erscheinen die Symbole in der Systemfarbe für
+  Schaltflächen. Die Größe lässt sich über `--custom-navigation-symbol-groesse` anpassen
+  (Standard `20px`), das Symbol selbst über `--custom-navigation-symbol` (`url(…)`).
 
 ## Lizenz
 
